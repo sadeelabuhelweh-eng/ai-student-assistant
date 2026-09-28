@@ -1,0 +1,20 @@
+import { createContext, useContext, useState } from 'react';
+import { api } from '../services/api.js';
+
+const Ctx = createContext(null);
+export const useAuth = () => useContext(Ctx);
+
+export function AuthProvider({ children }) {
+  const [user, setUser] = useState(() => JSON.parse(localStorage.getItem('user') || 'null'));
+
+  const authenticate = async (mode, form) => {
+    const data = await api(`/auth/${mode}`, { method: 'POST', body: form });
+    localStorage.setItem('token', data.token);
+    localStorage.setItem('user', JSON.stringify(data.user));
+    setUser(data.user);
+  };
+  const logout = () => {
+    localStorage.removeItem('token'); localStorage.removeItem('user'); setUser(null);
+  };
+  return <Ctx.Provider value={{ user, authenticate, logout }}>{children}</Ctx.Provider>;
+}
